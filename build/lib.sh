@@ -103,17 +103,17 @@ extract(){
     fi
     if [ -f "$source" ] ; then
       case $source in
-        *.tar.bz2)   tar xjf "$source" -C "$destination" --strip-components 1  ;;  
-        *.tar.gz)    tar xzf "$source" -C "$destination" --strip-components 1  ;;  
-        *.tar.xz)    tar xvfJ "$source" -C "$destination" --strip-components 1 ;;  
-        *.tar)       tar xf "$source" -C "$destination" --strip-components 1   ;;  
-        *.tbz2)      tar xjf "$source" -C "$destination" --strip-components 1  ;;  
-        *.tgz)       tar xzf "$source" -C "$destination" --strip-components 1  ;;  
+        *.tar.bz2)   tar xjf "$source" -C "$destination" --strip-components 1  ;;
+        *.tar.gz)    tar xzf "$source" -C "$destination" --strip-components 1  ;;
+        *.tar.xz)    tar xvfJ "$source" -C "$destination" --strip-components 1 ;;
+        *.tar)       tar xf "$source" -C "$destination" --strip-components 1   ;;
+        *.tbz2)      tar xjf "$source" -C "$destination" --strip-components 1  ;;
+        *.tgz)       tar xzf "$source" -C "$destination" --strip-components 1  ;;
         *)     echo "'${source}' cannot be extracted via extract()" ;;
          esac
      else
          echo "'${source}' is not a valid file"
-     fi  
+     fi
 }
 
 # Remove leading and
@@ -121,7 +121,7 @@ extract(){
 trim(){
     local var="$*"
     var="${var#"${var%%[![:space:]]*}"}"
-    var="${var%"${var##*[![:space:]]}"}"   
+    var="${var%"${var##*[![:space:]]}"}"
     echo -n "$var"
 }
 
@@ -166,6 +166,25 @@ get_version(){
     else
         version+=$(eval "$cmd")
     fi
+    if [ "$version" == "-" ];then
+        version+="${CURRENT_ARCH}"
+    else
+        version+="-${CURRENT_ARCH}"
+    fi
+    echo "$version"
+}
+
+get_version_simple(){
+    local cmd="$1"
+    if [ -z "$cmd" ];then
+        echo "Please provide a command to determine the version" >&2
+        echo "Example: /build/test --version | awk '{print \$2}'" >&2
+        exit 1
+    fi
+
+    local version="-"
+    version+=$(eval "$cmd")
+
     if [ "$version" == "-" ];then
         version+="${CURRENT_ARCH}"
     else
@@ -293,14 +312,16 @@ lib_build_libpcap(){
     fetch "$GIT_LIBPCAP" "${BUILD_DIRECTORY}/libpcap" git
     cd "${BUILD_DIRECTORY}/libpcap" || { echo "Cannot cd to ${BUILD_DIRECTORY}/libpcap"; exit 1; }
     git clean -fdx
-    git checkout libpcap-1.9.1
+    git checkout libpcap-1.10.5
+    ./autogen.sh
     CFLAGS="${GCC_OPTS}" \
         CXXFLAGS="${GXX_OPTS}" \
         ./configure \
             --host="$(get_host_triple)" \
             --with-pcap=linux \
-            --disable-shared \
-            --enable-static
+            --enable-ipv6=no \
+            --enable-remote=no \
+            --disable-shared
     make -j4
     echo "[+] Finished building libpcap ${CURRENT_ARCH}"
 }

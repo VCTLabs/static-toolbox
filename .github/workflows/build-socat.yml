@@ -10,7 +10,7 @@ jobs:
         version: ${{ steps.build_socat.outputs.PACKAGED_VERSION }}
       steps:
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
 
         - name: Install dependencies
           run: sudo apk update && sudo apk add bash && sudo bash build/install_deps_alpine.sh
@@ -23,7 +23,7 @@ jobs:
           run: $GITHUB_WORKSPACE/build/targets/build_socat.sh x86
 
         - name: Upload artifacts
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v4
           with:
               name: ${{ steps.build_socat.outputs.PACKAGED_NAME }}
               path: ${{ steps.build_socat.outputs.PACKAGED_NAME_PATH }}
@@ -34,7 +34,7 @@ jobs:
       container: muslcc/x86_64:x86_64-linux-musl
       steps:
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
 
         - name: Install dependencies
           run: sudo apk update && sudo apk add bash && sudo bash build/install_deps_alpine.sh
@@ -47,7 +47,7 @@ jobs:
           run: $GITHUB_WORKSPACE/build/targets/build_socat.sh x86_64
 
         - name: Upload artifacts
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v4
           with:
               name: ${{ steps.build_socat.outputs.PACKAGED_NAME }}
               path: ${{ steps.build_socat.outputs.PACKAGED_NAME_PATH }}
@@ -58,7 +58,7 @@ jobs:
       container: muslcc/x86_64:arm-linux-musleabihf
       steps:
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
 
         - name: Install dependencies
           run: sudo apk update && sudo apk add bash && sudo bash build/install_deps_alpine.sh
@@ -79,7 +79,7 @@ jobs:
           run: $GITHUB_WORKSPACE/build/targets/build_socat.sh armhf
 
         - name: Upload artifacts
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v4
           with:
               name: ${{ steps.build_socat.outputs.PACKAGED_NAME }}
               path: ${{ steps.build_socat.outputs.PACKAGED_NAME_PATH }}
@@ -90,7 +90,7 @@ jobs:
         container: muslcc/x86_64:aarch64-linux-musl
         steps:
           - name: Checkout
-            uses: actions/checkout@v2
+            uses: actions/checkout@v4
 
           - name: Install dependencies
             run: sudo apk update && sudo apk add bash && sudo bash build/install_deps_alpine.sh
@@ -111,7 +111,7 @@ jobs:
             run: $GITHUB_WORKSPACE/build/targets/build_socat.sh aarch64
 
           - name: Upload artifacts
-            uses: actions/upload-artifact@v2
+            uses: actions/upload-artifact@v4
             with:
                 name: ${{ steps.build_socat.outputs.PACKAGED_NAME }}
                 path: ${{ steps.build_socat.outputs.PACKAGED_NAME_PATH }}
@@ -122,7 +122,7 @@ jobs:
         container: muslcc/x86_64:powerpc-linux-musl
         steps:
           - name: Checkout
-            uses: actions/checkout@v2
+            uses: actions/checkout@v4
 
           - name: Install dependencies
             run: sudo apk update && sudo apk add bash && sudo bash build/install_deps_alpine.sh
@@ -143,7 +143,7 @@ jobs:
             run: $GITHUB_WORKSPACE/build/targets/build_socat.sh ppc32
 
           - name: Upload artifacts
-            uses: actions/upload-artifact@v2
+            uses: actions/upload-artifact@v4
             with:
                 name: ${{ steps.build_socat.outputs.PACKAGED_NAME }}
                 path: ${{ steps.build_socat.outputs.PACKAGED_NAME_PATH }}
@@ -154,7 +154,7 @@ jobs:
         container: muslcc/x86_64:powerpc64-linux-musl
         steps:
           - name: Checkout
-            uses: actions/checkout@v2
+            uses: actions/checkout@v4
 
           - name: Install dependencies
             run: sudo apk update && sudo apk add bash && sudo bash build/install_deps_alpine.sh
@@ -175,7 +175,7 @@ jobs:
             run: $GITHUB_WORKSPACE/build/targets/build_socat.sh ppc64
 
           - name: Upload artifacts
-            uses: actions/upload-artifact@v2
+            uses: actions/upload-artifact@v4
             with:
                 name: ${{ steps.build_socat.outputs.PACKAGED_NAME }}
                 path: ${{ steps.build_socat.outputs.PACKAGED_NAME_PATH }}
@@ -184,26 +184,31 @@ jobs:
       name: Create socat Release
       runs-on: ubuntu-latest
       needs: [build-x86, build-x86_64, build-armhf, build-aarch64, build-ppc32, build-ppc64]
+      permissions:
+        contents: write
       steps:
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
 
         - name: Prepare Environment
           run: mkdir /tmp/releases
 
         - name: Download Artifacts
-          uses: actions/download-artifact@v2
+          uses: actions/download-artifact@v4
           with:
             path: /tmp/releases
 
         - name: List Artifacts
           run: ls -laR /tmp/releases
 
+        - name: Fetch tags
+          run: git fetch --tags --prune --quiet
+
         - name: Tag Release
           id: tag_release
           run: |
             set +e
-            if git rev-list "socat-v${{ needs.build-x86.outputs.version }}".. >/dev/null;then
+            if git rev-list "socat-v${{ needs.build-x86.outputs.version }}" >/dev/null;then
               echo "Tag for socat-v${{ needs.build-x86.outputs.version }} already exists. Skipping release creation."
               echo "NEW_RELEASE=false" >> $GITHUB_OUTPUT
             else

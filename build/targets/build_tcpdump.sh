@@ -19,6 +19,8 @@ build_tcpdump() {
     cd "${BUILD_DIRECTORY}/tcpdump"
     git clean -fdx
     git checkout tcpdump-4.99.5
+    # need to create configure when using newer tags
+    autoconf -fiv
     export LIBPCAP_PATH="${BUILD_DIRECTORY}/libpcap"
     CFLAGS="${GCC_OPTS} -I${LIBPCAP_PATH} -L${LIBPCAP_PATH}" \
         CXXFLAGS="${GXX_OPTS}" \

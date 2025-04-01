@@ -22,7 +22,7 @@ build_tcpdump() {
     # need to create configure when using newer tags
     ./autogen.sh
     export LIBPCAP_PATH="${BUILD_DIRECTORY}/libpcap"
-    CFLAGS="${GCC_OPTS} -I${LIBPCAP_PATH} -L${LIBPCAP_PATH}" \
+    CFLAGS="${GCC_OPTS} -I. -I${LIBPCAP_PATH} -L${LIBPCAP_PATH}" \
         CXXFLAGS="${GXX_OPTS}" \
         CPPFLAGS="-static" \
         LDFLAGS="-static" \
@@ -36,6 +36,7 @@ main() {
     lib_build_libpcap
     build_tcpdump
     local version
+    ##version=$(get_version "${BUILD_DIRECTORY}/tcpdump/tcpdump --version 2>&1 | head -n1 | awk '{print \$3}'")
     version=$(get_version_simple "cat ${BUILD_DIRECTORY}/tcpdump/VERSION")
     echo "Got version: ${version}"
     version_number=$(echo "$version" | cut -d"-" -f2)

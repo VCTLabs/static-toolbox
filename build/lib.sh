@@ -7,7 +7,7 @@ GIT_LIBPCAP="https://github.com/the-tcpdump-group/libpcap.git"
 
 BUILD_DIRECTORY="/build"
 OUTPUT_DIRECTORY="/output"
-GCC_OPTS="-static -fPIC"
+GCC_OPTS="-static -static-libgcc -fPIC"
 GXX_OPTS="-static -static-libstdc++ -fPIC"
 TMP_DIR=$(mktemp -dt building_lib.XXXXXX)
 trap "rm -rf ${TMP_DIR}" EXIT TERM
@@ -174,6 +174,7 @@ get_version(){
     echo "$version"
 }
 
+# even after cleanup, the above *still fails* on armhf/arm64 with version+=Invalid
 get_version_simple(){
     local cmd="$1"
     if [ -z "$cmd" ];then
